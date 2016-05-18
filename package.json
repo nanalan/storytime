@@ -1,0 +1,27 @@
+{
+  "name": "storytime",
+  "version": "0.0.1",
+  "description": "A programming language about telling stories.",
+  "main": "src/storytime.js",
+  "bin": {
+    "tell": "src/tell.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/storytime/storytime.git"
+  },
+  "author": "nanalan",
+  "contributors": [
+    "nanalan",
+    "kvackkvack"
+  ],
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/nanalan/storytime/issues"
+  },
+  "homepage": "https://github.com/nanalan/storytime#readme",
+  "dependencies": {
+    "nearley": "^2.4.1",
+    "nomnom": "^1.8.1"
+  }
+}
