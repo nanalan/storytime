@@ -3,14 +3,11 @@
 'use strict'
 
 const special = {
-  chars: '()<>. +-*/^\\!#',
-  words: ['num', 'str']
-}
-
-const join = function(a) {
-  // this is black magic
-  var last = a[a.length - 1]
-  return [a[0], ...last]
+  chars: '()<>. +-*/^\\!#=\'",!?{}',
+  words: ['num', 'str', 'def', 'boo',
+          'is',
+          'true', 'false', 'yes', 'no',
+          'then', 'do', 'end']
 }
 
 const flatten = function(arr) {
@@ -27,41 +24,44 @@ const flatten = function(arr) {
 
 @builtin "string.ne"
 
-main -> commands:* {% (d) => d[0].filter(l => l !== null).map(l => ['line', l]) %}
+main -> program                                      {% d => d[0] %}
+program -> commands:*                               {% d => d[0].filter(l => l[0] !== null) %}
+commands -> (_ command {% d => d[1] %}):? _ newline {% (d, i) => [d[0], i] %}
 
-commands -> command:? _ newline {% d => d[0] %}
-
-command -> expression         {% d => d[0] %}
-         | comment            {% d => null %}
-         | define             {% d => ['define', d[0]] %}
-         | modify             {% d => ['modify', d[0]] %}
-         | call               {% d => ['call', d[0]] %}
-         | command _ comment  {% d => d[0] %}
+command -> comment           {% d => null %}
+         | define            {% d => ['define', d[0]] %}
+         | modify            {% d => ['modify', d[0]] %}
+         | call              {% d => ['call', d[0]] %}
+         | conditional       {% d => ['conditional', d[0]] %}
+         | command _ comment {% d => d[0] %}
          
-comment -> _ "#" _ [^"\n"]:*  {% d => null %}
+comment -> _ "#" _ [^"\n"]:* {% d => null %}
 
-indent -> "  "
+expression -> arithmetic     {% d => d[0] %}
+            | block          {% d => d[0] %}
 
-expression -> arithmetic {% (d) => d[0] %}
+conditional -> "if" __ expression __ block "end"              {% d => [d[0][0], d[2], d[4]] %}
+             | "if" __ expression __ block "else" block "end" {% d => [d[0][0], d[2], d[4]] %}
 
-keyword -> "say" {% () => 'print' %}
-
-define -> "num " var (__ setter __ expression {% d => d[3] %} ):? {% d => ['num', d[1], d[2] || 0] %}
+define -> "num "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['num',d[1],d[2]||0] %}
+        | "str "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['str',d[1],d[2]||''] %}
+        | "bool " var (__ setter __ expression {% d => d[3] %} ):? {% d=>['bool',d[1],d[2]||false] %}
 
 modify -> var __ setter __ expression {% d => ['set', d[0], d[4]] %}
 
 setter -> "="
         | "is"
 
-call -> var __ args             {% d => [d[0], ...d[2]] %}
-      | var                     {% d => [d[0]         ] %}
-      | var "(" _ args:? _ ")"  {% d => [d[0], ...d[3]] %}
+call -> var __ args             {% d => [d[0], d[2]] %}
+      | var                     {% d => [d[0], []] %}
+      | var "(" _ args:? _ ")"  {% d => [d[0], d[3]] %}
 
-args -> arg:+                   {% d => d[0] %}
-arg  -> expression _ "," _ args {% join %}
-      | expression              {% d => d[0] %}
+args -> arg:* expression        {% d => { d[0].push(d[1]); return d[0] } %}
+arg  -> expression _ "," _      {% d => d[0] %}
 
 arithmetic -> _ AS _ {% (d) => d[1] %}
+
+block -> "then" _ newline:? program _ newline:? {% d => ['block', d[3]] %}
 
 # Brackets
 B -> "(" _ AS _ ")" {% d => d[2] %}
@@ -69,6 +69,7 @@ B -> "(" _ AS _ ")" {% d => d[2] %}
     | int           {% d => ['num', parseInt(flatten(d)[0])] %}
     | var           {% d => ['var', flatten(d)[0]] %}
     | string        {% d => ['str', d[0]] %}
+    | bool          {% d => ['bool', d[0]] %}
 
 # Indicies
 I -> B _ "^" _ I    {% function(d) { return ['power', flatten(d)[0]] } %}
@@ -97,6 +98,11 @@ string -> dqstring {% d => d[0] %}
         | sqstring {% d => d[0] %}
         | btstring {% d => d[0] %}
 
+bool -> "true"  {% () => true  %}
+      | "yes"   {% () => true  %}
+      | "false" {% () => false %}
+      | "no"    {% () => false %}
+
 var -> varchar:+ {% (d, _, no) => {
       var identifier = d[0].join('')
       if(/[0-9]/.test(identifier.charAt(0)) || special.words.indexOf(identifier) !== -1) return no
@@ -107,6 +113,7 @@ varchar -> . {% (d, _, no) => d[0] && special.chars.indexOf(d[0]) === -1 ? d[0] 
 newline -> "\r" "\n"
          | "\r"
          | "\n"
+         | ";"
 
 _  -> " ":*     {% function(d) { return null } %}
 __ -> " ":+     {% function(d) { return null } %}

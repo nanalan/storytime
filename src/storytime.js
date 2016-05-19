@@ -5,14 +5,17 @@ const nearley = require('nearley')
 const nearleyg = require('nearley/lib/nearley-language-bootstrapped.js')
 const nearleyc = require('nearley/lib/compile.js')
 const gen = require('nearley/lib/generate.js')
+const interp = require('./interp.js')
+const uniq = require('uniq')
 
 module.exports = function tell(story, opts) {
   let grammar, parser
   let lines = story.split('\n')
-  
-  console.log('\n')
 
   process.chdir(__dirname)
+
+  // temporary
+  opts.grammar = 'grammars/classic'
 
   if(!opts.grammar) {
     // determine the grammar
@@ -29,17 +32,18 @@ module.exports = function tell(story, opts) {
 
     // destroy first level of indentation
     lines = lines.map(line => line.substr(2))
-  } else grammar = opts.grammar
 
-  // destroy the first line
-  lines.shift()
+    // destroy the first line
+    lines.shift()
+  } else grammar = opts.grammar
 
   if(opts.dev) {
     // compile grammar.ne
+    // clone of https://github.com/Hardmath123/nearley/blob/master/bin/nearleyc.js
     let file = grammar
     grammar = fs.readFileSync(__dirname+'/'+grammar+'.ne', 'utf8')
     parser = new nearley.Parser(nearleyg.ParserRules, nearleyg.ParserStart)
-    grammar = nearleyc(parser.feed(grammar).results[0], {})
+    grammar = nearleyc(parser.feed(grammar).results[0], {nojs: opts.nojs})
     fs.writeFileSync(__dirname+'/'+file+'.js', gen(grammar, 'grammar'))
     grammar = require(__dirname+'/'+file+'.js')
   } else {
@@ -54,8 +58,19 @@ module.exports = function tell(story, opts) {
   // generate parser
   parser = new nearley.Parser(grammar.ParserRules, grammar.ParserStart)
 
-  // parse story
-  story = parser.feed(lines.join('\n')+'\n').results[0]
+  // join up the lines again
+  let source = '\n'+lines.join('\n')+'\n'
 
-  if(opts.dev) console.log(JSON.stringify(story, null, 2))
+  // parse story
+  let trees = uniq(parser.feed(source).results, require('deep-equal')) // hm...
+
+  if(trees.length > 1) {
+    console.warn('ambiguous grammar ('+trees.length+'):')
+    console.log(JSON.stringify(trees, null, 2))
+  } else if(trees.length === 0) throw 'nothing parsed'
+  
+  if(opts.tree) console.log(JSON.stringify(trees[0], null, 2))
+
+  // interpret it!
+  interp(trees[0], source)
 }

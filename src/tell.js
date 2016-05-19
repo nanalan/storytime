@@ -22,12 +22,23 @@ const opts = require('nomnom')
   .option('dev', {
     abbr: 'd',
     flag: true,
-    help: 'force compilation of grammar'
+    help: 'force re-compilation of grammar'
   })
+  .option('nojs', {
+    flag: true,
+    hidden: true
+  })
+  .option('tree', {
+    abbr: 't',
+    flag: true,
+    help: 'print source tree'
+  })
+  /*
   .option('grammar', {
     abbr: 'g',
     help: 'file to act as story grammar'
   })
+  */
 .nom()
 
 let story = fs.readFileSync(opts.story, 'utf8')

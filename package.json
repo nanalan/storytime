@@ -21,7 +21,11 @@
   },
   "homepage": "https://github.com/nanalan/storytime#readme",
   "dependencies": {
+    "chalk": "^1.1.3",
+    "deep-equal": "^1.0.1",
+    "get-line-from-pos": "^1.0.0",
     "nearley": "^2.4.1",
-    "nomnom": "^1.8.1"
+    "nomnom": "^1.8.1",
+    "uniq": "^1.0.1"
   }
 }

@@ -1,5 +1,8 @@
-in a galaxy far, far away...
-  num x is 2
-  num y is 3.1
+num y = 25
+bool x
 
-  print x * y
+if x then
+  print 'x is true'
+else
+  print 'x is false'
+end
