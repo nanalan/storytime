@@ -6,6 +6,22 @@ function id(x) {return x[0]; }
 
 var special = require('../specials.js')
 
+var join = function(a) {
+  // this is black magic
+  var last = a[a.length - 1]
+  return [a[0], ...last]
+}
+
+var flatten = function(arr) {
+  return arr.filter(function(e){
+    return e != null
+  }).reduce(function (flat, toFlatten) {
+    return flat.filter(function(e){
+      return e != null
+    }).concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+  }, [])
+}
+
 
 
 function nth(n) {
@@ -53,23 +69,40 @@ var grammar = {
             return d.join("");
         }
         },
+    {"name": "main$ebnf$1", "symbols": []},
+    {"name": "main$ebnf$1", "symbols": ["command", "main$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "main", "symbols": ["main$ebnf$1"], "postprocess": function(d) { return d[0] }},
+    {"name": "command", "symbols": ["arithmetic"], "postprocess": function(d) { return ['statement', d[0]] }},
+    {"name": "command", "symbols": ["comment"], "postprocess": function(d) { return d[0] }},
+    {"name": "command", "symbols": ["keyword", "_", "command"], "postprocess": function(d) { return d }},
+    {"name": "command", "symbols": ["comment"], "postprocess": function(d) { return d[0] }},
+    {"name": "command", "symbols": ["command", "_", "comment"], "postprocess": function(d) { return [d[0], d[2]] }},
+    {"name": "comment$ebnf$1", "symbols": []},
+    {"name": "comment$ebnf$1", "symbols": [/[^"\n"]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "comment", "symbols": ["_", {"literal":"#"}, "_", "comment$ebnf$1"], "postprocess": function(d) { return ['comment', d[3].join('')] }},
+    {"name": "indent$string$1", "symbols": [{"literal":" "}, {"literal":" "}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "indent", "symbols": ["indent$string$1"]},
+    {"name": "keyword$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"i"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "keyword", "symbols": ["keyword$string$1"]},
+    {"name": "string", "symbols": ["dqstring"]},
+    {"name": "string", "symbols": ["sqstring"]},
+    {"name": "string", "symbols": ["btstring"]},
     {"name": "arithmetic", "symbols": ["_", "AS", "_"], "postprocess": function(d) {return d[1]; }},
     {"name": "B", "symbols": [{"literal":"("}, "_", "AS", "_", {"literal":")"}], "postprocess": function(d) {return d[2]; }},
-    {"name": "B", "symbols": ["n"], "postprocess": id},
-    {"name": "I", "symbols": ["B", "_", {"literal":"^"}, "_", "I"]},
+    {"name": "B", "symbols": ["float"], "postprocess": function(d) { return ['float', flatten(d)[0]] }},
+    {"name": "B", "symbols": ["int"], "postprocess": function(d) { return ['integer', parseInt(flatten(d)[0])] }},
+    {"name": "B", "symbols": ["var"], "postprocess": function(d) { return ['variable', flatten(d)[0]] }},
+    {"name": "I", "symbols": ["B", "_", {"literal":"^"}, "_", "I"], "postprocess": function(d) { return ['power', flatten(d)[0]] }},
     {"name": "I", "symbols": ["B"], "postprocess": id},
-    {"name": "DM", "symbols": ["DM", "_", {"literal":"*"}, "_", "I"]},
-    {"name": "DM", "symbols": ["DM", "_", {"literal":"/"}, "_", "I"]},
+    {"name": "DM", "symbols": ["DM", "_", {"literal":"*"}, "_", "I"], "postprocess": function(d) { return ['multiply', d[0], d[4] ] }},
+    {"name": "DM", "symbols": ["DM", "_", {"literal":"/"}, "_", "I"], "postprocess": function(d) { return ['divide', d[0], d[4] ] }},
     {"name": "DM", "symbols": ["I"], "postprocess": id},
-    {"name": "AS", "symbols": ["AS", "_", {"literal":"+"}, "_", "DM"]},
-    {"name": "AS", "symbols": ["AS", "_", {"literal":"-"}, "_", "DM"]},
+    {"name": "AS", "symbols": ["AS", "_", {"literal":"+"}, "_", "DM"], "postprocess": function(d) { return ['plus', d[0], d[4] ] }},
+    {"name": "AS", "symbols": ["AS", "_", {"literal":"-"}, "_", "DM"], "postprocess": function(d) { return ['minus', d[0], d[4] ] }},
     {"name": "AS", "symbols": ["DM"], "postprocess": id},
-    {"name": "n", "symbols": ["float"], "postprocess": id},
-    {"name": "n", "symbols": ["var"]},
     {"name": "float$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "float$ebnf$1", "symbols": [/[0-9]/, "float$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "float", "symbols": ["int", {"literal":"."}, "float$ebnf$1"], "postprocess": function(d) {return parseFloat(d[0] + d[1] + d[2])}},
-    {"name": "float", "symbols": ["int"], "postprocess": function(d) {return parseInt(d[0])}},
     {"name": "int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": function(d) {return d[0].join(""); }},
@@ -79,7 +112,7 @@ var grammar = {
         var identifier = data[0].join('')
         if(/[0-9]/.test(identifier.charAt(0)) || special.words.indexOf(identifier) !== -1)
           return reject
-        return ['variable', identifier]
+        return identifier
         } },
     {"name": "varchar", "symbols": [/./], "postprocess":  function(data, _, reject) {
         if(data[0] && special.chars.indexOf(data[0]) === -1)
@@ -88,13 +121,7 @@ var grammar = {
         } },
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) {return null; }},
-    {"name": "main", "symbols": ["_", "arithmetic", "_"]},
-    {"name": "indent$string$1", "symbols": [{"literal":" "}, {"literal":" "}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "indent", "symbols": ["indent$string$1"]},
-    {"name": "string", "symbols": ["dqstring"]},
-    {"name": "string", "symbols": ["sqstring"]},
-    {"name": "string", "symbols": ["btstring"]}
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null }}
 ]
   , ParserStart: "main"
 }

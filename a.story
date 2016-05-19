@@ -1,2 +1,2 @@
 in a galaxy far, far away...
-  2 * (1 + x)
+  print 1 + 1
