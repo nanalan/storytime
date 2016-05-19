@@ -4,15 +4,17 @@
 function id(x) {return x[0]; }
 
 
-var special = require('../specials.js')
+'use strict'
 
-var join = function(a) {
+const special = require('../specials.js')
+
+const join = function(a) {
   // this is black magic
-  var last = a[a.length - 1]
+  let last = a[a.length - 1]
   return [a[0], ...last]
 }
 
-var flatten = function(arr) {
+const flatten = function(arr) {
   return arr.filter(function(e){
     return e != null
   }).reduce(function (flat, toFlatten) {
@@ -70,35 +72,50 @@ var grammar = {
         }
         },
     {"name": "main$ebnf$1", "symbols": []},
-    {"name": "main$ebnf$1", "symbols": ["command", "main$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "main", "symbols": ["main$ebnf$1"], "postprocess": function(d) { return d[0] }},
-    {"name": "command", "symbols": ["arithmetic"], "postprocess": function(d) { return ['statement', d[0]] }},
-    {"name": "command", "symbols": ["comment"], "postprocess": function(d) { return d[0] }},
-    {"name": "command", "symbols": ["keyword", "_", "command"], "postprocess": function(d) { return d }},
-    {"name": "command", "symbols": ["comment"], "postprocess": function(d) { return d[0] }},
-    {"name": "command", "symbols": ["command", "_", "comment"], "postprocess": function(d) { return [d[0], d[2]] }},
+    {"name": "main$ebnf$1", "symbols": ["command_", "main$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "main", "symbols": ["main$ebnf$1"], "postprocess": (d) => d[0].map((x) => ['line', x])},
+    {"name": "command_", "symbols": ["command", {"literal":"\n"}], "postprocess": d => d[0]},
+    {"name": "command", "symbols": ["expression"], "postprocess": d => d[0]},
+    {"name": "command", "symbols": ["comment"], "postprocess": d => d[0]},
+    {"name": "command", "symbols": ["keyword", "_", "command"], "postprocess": d => [d[0], d[2]]},
+    {"name": "command", "symbols": ["comment"], "postprocess": d => null},
+    {"name": "command", "symbols": ["new_var"], "postprocess": d => ['new', d[0]]},
+    {"name": "command", "symbols": ["command", "_", "comment"], "postprocess": d => d[0]},
     {"name": "comment$ebnf$1", "symbols": []},
     {"name": "comment$ebnf$1", "symbols": [/[^"\n"]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "comment", "symbols": ["_", {"literal":"#"}, "_", "comment$ebnf$1"], "postprocess": function(d) { return ['comment', d[3].join('')] }},
+    {"name": "comment", "symbols": ["_", {"literal":"#"}, "_", "comment$ebnf$1"], "postprocess": d => null},
+    {"name": "comment$string$1", "symbols": [{"literal":"/"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "comment$ebnf$2", "symbols": []},
+    {"name": "comment$ebnf$2", "symbols": [/[^"\n"]/, "comment$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "comment", "symbols": ["_", "comment$string$1", "_", "comment$ebnf$2"], "postprocess": d => null},
     {"name": "indent$string$1", "symbols": [{"literal":" "}, {"literal":" "}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "indent", "symbols": ["indent$string$1"]},
-    {"name": "keyword$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"i"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "keyword", "symbols": ["keyword$string$1"]},
-    {"name": "string", "symbols": ["dqstring"]},
-    {"name": "string", "symbols": ["sqstring"]},
-    {"name": "string", "symbols": ["btstring"]},
-    {"name": "arithmetic", "symbols": ["_", "AS", "_"], "postprocess": function(d) {return d[1]; }},
-    {"name": "B", "symbols": [{"literal":"("}, "_", "AS", "_", {"literal":")"}], "postprocess": function(d) {return d[2]; }},
-    {"name": "B", "symbols": ["float"], "postprocess": function(d) { return ['float', flatten(d)[0]] }},
-    {"name": "B", "symbols": ["int"], "postprocess": function(d) { return ['integer', parseInt(flatten(d)[0])] }},
-    {"name": "B", "symbols": ["var"], "postprocess": function(d) { return ['variable', flatten(d)[0]] }},
+    {"name": "expression", "symbols": ["arithmetic"], "postprocess": (d) => d[0]},
+    {"name": "keyword$string$1", "symbols": [{"literal":"s"}, {"literal":"a"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "keyword", "symbols": ["keyword$string$1"], "postprocess": () => 'print'},
+    {"name": "new_var$string$1", "symbols": [{"literal":"i"}, {"literal":"n"}, {"literal":"t"}, {"literal":" "}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "new_var$ebnf$1$subexpression$1", "symbols": [{"literal":" "}, "setter", {"literal":" "}, "expression"], "postprocess": d => d[3]},
+    {"name": "new_var$ebnf$1", "symbols": ["new_var$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "new_var$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "new_var", "symbols": ["new_var$string$1", "var", "new_var$ebnf$1"], "postprocess": (d) => ['integer', d[1], d[2] || 0]},
+    {"name": "setter", "symbols": [{"literal":"="}]},
+    {"name": "setter$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "setter", "symbols": ["setter$string$1"]},
+    {"name": "arithmetic", "symbols": ["_", "AS", "_"], "postprocess": (d) => d[1]},
+    {"name": "B", "symbols": [{"literal":"("}, "_", "AS", "_", {"literal":")"}], "postprocess": (d) => d[2]},
+    {"name": "B", "symbols": ["float"], "postprocess": (d) => ['float', flatten(d)[0]]},
+    {"name": "B", "symbols": ["int"], "postprocess": d => ['integer', parseInt(flatten(d)[0])]},
+    {"name": "B", "symbols": ["var"], "postprocess": d => ['identifier', flatten(d)[0]]},
+    {"name": "B", "symbols": ["string"], "postprocess": d => ['string', d[0]]},
     {"name": "I", "symbols": ["B", "_", {"literal":"^"}, "_", "I"], "postprocess": function(d) { return ['power', flatten(d)[0]] }},
     {"name": "I", "symbols": ["B"], "postprocess": id},
     {"name": "DM", "symbols": ["DM", "_", {"literal":"*"}, "_", "I"], "postprocess": function(d) { return ['multiply', d[0], d[4] ] }},
     {"name": "DM", "symbols": ["DM", "_", {"literal":"/"}, "_", "I"], "postprocess": function(d) { return ['divide', d[0], d[4] ] }},
     {"name": "DM", "symbols": ["I"], "postprocess": id},
     {"name": "AS", "symbols": ["AS", "_", {"literal":"+"}, "_", "DM"], "postprocess": function(d) { return ['plus', d[0], d[4] ] }},
-    {"name": "AS", "symbols": ["AS", "_", {"literal":"-"}, "_", "DM"], "postprocess": function(d) { return ['minus', d[0], d[4] ] }},
+    {"name": "AS", "symbols": ["AS", "_", {"literal":"-"}, "_", "DM"], "postprocess": d => ['minus', d[0], d[4] ]},
+    {"name": "AS$string$1", "symbols": [{"literal":" "}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"s"}, {"literal":" "}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "AS", "symbols": ["AS", "AS$string$1", "DM"], "postprocess": d => ['minus', d[0], d[2] ]},
     {"name": "AS", "symbols": ["DM"], "postprocess": id},
     {"name": "float$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "float$ebnf$1", "symbols": [/[0-9]/, "float$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
@@ -106,6 +123,9 @@ var grammar = {
     {"name": "int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": function(d) {return d[0].join(""); }},
+    {"name": "string", "symbols": ["dqstring"], "postprocess": d => d[0]},
+    {"name": "string", "symbols": ["sqstring"], "postprocess": d => d[0]},
+    {"name": "string", "symbols": ["btstring"], "postprocess": d => d[0]},
     {"name": "var$ebnf$1", "symbols": ["varchar"]},
     {"name": "var$ebnf$1", "symbols": ["varchar", "var$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "var", "symbols": ["var$ebnf$1"], "postprocess":  function(data, _, reject) {

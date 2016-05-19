@@ -9,13 +9,15 @@ const gen = require('nearley/lib/generate.js')
 module.exports = function tell(story, opts) {
   let grammar, parser
   let lines = story.split('\n')
+  
+  console.log('\n')
 
   process.chdir(__dirname)
 
   if(!opts.grammar) {
     // determine the grammar
     switch(lines[0]) {
-      case 'once upon a time...':
+      case 'once upon a time,':
         grammar = 'classic'
       break;
 
@@ -50,10 +52,10 @@ module.exports = function tell(story, opts) {
   }
 
   // generate parser
-  parser = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
+  parser = new nearley.Parser(grammar.ParserRules, grammar.ParserStart)
 
   // parse story
   story = parser.feed(lines.join('\n')).results[0]
 
-  if(opts.dev) console.dir(story, {depth: null})
+  if(opts.dev) console.log(JSON.stringify(story, null, 2))
 }

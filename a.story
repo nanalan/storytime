@@ -1,2 +1,4 @@
 in a galaxy far, far away...
-  print 1 + 1
+  1 + 2
+  int x is 25
+  // test
