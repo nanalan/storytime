@@ -20,50 +20,53 @@ function expr(e) {
 
 module.exports = function interpret(tree, source) {
   let scope = {
-    print: ['def', () => console.log(arguments.map(arg => arg[1]()))],
-    if: ['def', (expression, fn) => expression? fn : function() {}]
+    print: ['def', (x,y) => console.log(y[1]())]
   }
 
   tree.forEach(function(line) {
     let index = line[1]
     line = line[0]
 
-    switch(line[0]) {
-      case 'define':
-        /*
-          Variable definitions.
-          (num|str) <var> [(=|is) <value>]
-        */
+    if(line[0] === 'define') {
+      /*
+        Variable definitions.
+        (num|str) <var> [(=|is) <value>]
+      */
 
-        let type = line[1][0]
-        let vari = line[1][1]
-        let to = line[1][2]
+      let type = line[1][0]
+      let vari = line[1][1]
+      let to = line[1][2]
 
-        if(type !== to[0]) error('Type mismatch', index, source)
+      if(type !== to[0]) error(`Type mismatch; ${chalk.bold(vari)} is type ${chalk.cyan(type)}`, index, source)
 
-        scope[vari] = [type, () => to[1]]
-      break
+      scope[vari] = [type, to[1]]
+    } else
+    if(line[0] === 'modify') {
+      /*
+        Variable modifications.
+        <var> (=|is) <value>
+      */
 
-      case 'modify':
-        /*
-          Variable modifications.
-          <var> (=|is) <value>
-        */
-      break
+      let vari = line[1][1]
+      let type = scope[vari][0]
+      let to = line[1][2]
 
-      case 'call':
-        /*
-          Definition calls.
-          <var> [arg1[, arg2[, arg3]]]
-        */
+      if(type !== to[0]) error(`Type mismatch; ${chalk.bold(vari)} is type ${chalk.cyan(type)}`, index, source)
 
-        let identifier = line[1][0]
-        let args = line[1][1].map(arg => expr(arg))
-        
-        if(typeof scope[identifier] !== 'undefined') {
-          scope[identifier][1](...args)
-        } else error(`${chalk.bold(identifier)} is not defined`, index, source)
-      break
+      scope[vari] = [type, to[1]]
+    } else
+    if(line[0] === 'call') {
+      /*
+        Definition calls.
+        <var> [arg1[, arg2[, arg3]]]
+      */
+
+      let identifier = line[1][0]
+      let args = line[1][1].map(arg => expr(arg))
+
+      if(typeof scope[identifier] !== 'undefined') {
+        scope[identifier][1](...args)
+      } else error(`${chalk.bold(identifier)} is not defined`, index, source)
     }
   })
 }

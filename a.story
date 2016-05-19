@@ -1,8 +1,9 @@
-num y = 25
-bool x
+bool x = true
 
-if x then
-  print 'x is true'
-else
-  print 'x is false'
-end
+print x
+
+#if x then
+#  print 'x is true'
+#else
+#  print 'x is false'
+#end

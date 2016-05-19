@@ -7,7 +7,7 @@ const special = {
   words: ['num', 'str', 'def', 'boo',
           'is',
           'true', 'false', 'yes', 'no',
-          'then', 'do', 'end']
+          'if', 'then', 'else']
 }
 
 const flatten = function(arr) {
@@ -24,7 +24,7 @@ const flatten = function(arr) {
 
 @builtin "string.ne"
 
-main -> program                                      {% d => d[0] %}
+main -> program                                     {% d => d[0] %}
 program -> commands:*                               {% d => d[0].filter(l => l[0] !== null) %}
 commands -> (_ command {% d => d[1] %}):? _ newline {% (d, i) => [d[0], i] %}
 
@@ -32,20 +32,20 @@ command -> comment           {% d => null %}
          | define            {% d => ['define', d[0]] %}
          | modify            {% d => ['modify', d[0]] %}
          | call              {% d => ['call', d[0]] %}
-         | conditional       {% d => ['conditional', d[0]] %}
+         | conditional       {% d => d[0] %}
          | command _ comment {% d => d[0] %}
          
 comment -> _ "#" _ [^"\n"]:* {% d => null %}
 
 expression -> arithmetic     {% d => d[0] %}
-            | block          {% d => d[0] %}
+            | block          {% (d,r) => d[0][1].length>0?d[0]:r %}
 
-conditional -> "if" __ expression __ block "end"              {% d => [d[0][0], d[2], d[4]] %}
-             | "if" __ expression __ block "else" block "end" {% d => [d[0][0], d[2], d[4]] %}
+conditional -> "if" __ expression __ "then" block "end"              {% d => [d[0], d[2], d[5], ['block', []]] %}
+             | "if" __ expression __ "then" block "else" block "end" {% d => [d[0], d[2], d[4], d[7]] %}
 
-define -> "num "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['num',d[1],d[2]||0] %}
-        | "str "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['str',d[1],d[2]||''] %}
-        | "bool " var (__ setter __ expression {% d => d[3] %} ):? {% d=>['bool',d[1],d[2]||false] %}
+define -> "num "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['num',d[1],d[2]||['num', 0]] %}
+        | "str "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['str',d[1],d[2]||['str', '']] %}
+        | "bool " var (__ setter __ expression {% d => d[3] %} ):? {% d=>['bool',d[1],d[2]||['bool', false]] %}
 
 modify -> var __ setter __ expression {% d => ['set', d[0], d[4]] %}
 
@@ -61,15 +61,15 @@ arg  -> expression _ "," _      {% d => d[0] %}
 
 arithmetic -> _ AS _ {% (d) => d[1] %}
 
-block -> "then" _ newline:? program _ newline:? {% d => ['block', d[3]] %}
+block -> _ newline:? program _ newline:? _ {% d => ['block', d[2]] %}
 
 # Brackets
 B -> "(" _ AS _ ")" {% d => d[2] %}
-    | float         {% d => ['num', flatten(d)[0]] %}
-    | int           {% d => ['num', parseInt(flatten(d)[0])] %}
-    | var           {% d => ['var', flatten(d)[0]] %}
-    | string        {% d => ['str', d[0]] %}
-    | bool          {% d => ['bool', d[0]] %}
+    | float         {% d => ['num', ()=>d[0]] %}
+    | int           {% d => ['num', ()=>parseInt(d[0])] %}
+    | var           {% d => ['var', ()=>d[0]] %}
+    | string        {% d => ['str', ()=>d[0]] %}
+    | bool          {% d => ['bool', ()=>d[0]] %}
 
 # Indicies
 I -> B _ "^" _ I    {% function(d) { return ['power', flatten(d)[0]] } %}

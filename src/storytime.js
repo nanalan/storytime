@@ -65,11 +65,10 @@ module.exports = function tell(story, opts) {
   let trees = uniq(parser.feed(source).results, require('deep-equal')) // hm...
 
   if(trees.length > 1) {
-    console.warn('ambiguous grammar ('+trees.length+'):')
-    console.log(JSON.stringify(trees, null, 2))
+    console.dir(trees, {depth:null})
+    console.warn('^^^ ambiguous grammar ('+trees.length+') ^^^')
   } else if(trees.length === 0) throw 'nothing parsed'
-  
-  if(opts.tree) console.log(JSON.stringify(trees[0], null, 2))
+  else if(opts.tree) console.log(JSON.stringify(trees[0], null, 2))
 
   // interpret it!
   interp(trees[0], source)
