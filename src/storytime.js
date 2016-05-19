@@ -55,7 +55,7 @@ module.exports = function tell(story, opts) {
   parser = new nearley.Parser(grammar.ParserRules, grammar.ParserStart)
 
   // parse story
-  story = parser.feed(lines.join('\n')).results[0]
+  story = parser.feed(lines.join('\n')+'\n').results[0]
 
   if(opts.dev) console.log(JSON.stringify(story, null, 2))
 }
