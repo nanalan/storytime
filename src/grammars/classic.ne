@@ -4,7 +4,7 @@
 
 const special = {
   chars: '()<>. +-*/^\\!#=\'",!?{}',
-  words: ['num', 'str', 'def', 'boo',
+  words: ['num', 'str', 'def', 'bool',
           'is',
           'true', 'false', 'yes', 'no',
           'if', 'then', 'else']
@@ -37,8 +37,8 @@ command -> comment           {% d => null %}
          
 comment -> _ "#" _ [^"\n"]:* {% d => null %}
 
-expression -> arithmetic     {% d => d[0] %}
-            | block          {% (d,r) => d[0][1].length>0?d[0]:r %}
+expression -> arithmetic       {% d => d[0] %}
+            | "do" block "end" {% (d,i,r) => d[1][1].length>0?d[1]:r %}
 
 conditional -> "if" __ expression __ "then" block "end"              {% d => [d[0], d[2], d[5], ['block', []]] %}
              | "if" __ expression __ "then" block "else" block "end" {% d => [d[0], d[2], d[4], d[7]] %}
@@ -65,11 +65,11 @@ block -> _ newline:? program _ newline:? _ {% d => ['block', d[2]] %}
 
 # Brackets
 B -> "(" _ AS _ ")" {% d => d[2] %}
-    | float         {% d => ['num', ()=>d[0]] %}
-    | int           {% d => ['num', ()=>parseInt(d[0])] %}
-    | var           {% d => ['var', ()=>d[0]] %}
-    | string        {% d => ['str', ()=>d[0]] %}
-    | bool          {% d => ['bool', ()=>d[0]] %}
+    | float         {% d => ['num', d[0]] %}
+    | int           {% d => ['num', parseInt(d[0])] %}
+    | var           {% d => ['var', d[0]] %}
+    | string        {% d => ['str', d[0]] %}
+    | bool          {% d => ['bool', d[0]] %}
 
 # Indicies
 I -> B _ "^" _ I    {% function(d) { return ['power', flatten(d)[0]] } %}
@@ -96,7 +96,7 @@ int -> [0-9]:+        {% function(d) {return d[0].join(""); } %}
 
 string -> dqstring {% d => d[0] %}
         | sqstring {% d => d[0] %}
-        | btstring {% d => d[0] %}
+        #| btstring {% d => d[0] %}
 
 bool -> "true"  {% () => true  %}
       | "yes"   {% () => true  %}
@@ -107,8 +107,8 @@ var -> varchar:+ {% (d, _, no) => {
       var identifier = d[0].join('')
       if(/[0-9]/.test(identifier.charAt(0)) || special.words.indexOf(identifier) !== -1) return no
       return identifier
-      } %} 
-varchar -> . {% (d, _, no) => d[0] && special.chars.indexOf(d[0]) === -1 ? d[0] : no %} 
+      } %}
+varchar -> . {% (d, _, no) => d[0] && special.chars.indexOf(d[0]) === -1 ? d[0] : no %}
 
 newline -> "\r" "\n"
          | "\r"
