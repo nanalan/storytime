@@ -3,11 +3,10 @@
 'use strict'
 
 const special = {
-  chars: '()<>. +-*/^\\!#=\'",!?{}',
-  words: ['num', 'str', 'def', 'bool',
-          'is',
-          'true', 'false', 'yes', 'no',
-          'if', 'then', 'else']
+  chars: '()<>. +-*/^\\!#=\'",!{}',
+  words: ['is', 'issa',
+          'tru', 'fals', 'lie',
+          'if', 'otherwise']
 }
 
 const flatten = function(arr) {
@@ -33,55 +32,53 @@ command -> comment           {% d => null %}
          | modify            {% d => ['modify', d[0]] %}
          | call              {% d => ['call', d[0]] %}
          | conditional       {% d => d[0] %}
-         | command _ comment {% d => d[0] %}
+         | "kek"             {% d => ['end'] %}
          
-comment -> _ "#" _ [^"\n"]:* {% d => null %}
+comment -> _ "(..." [^")"]:* ")"
 
-expression -> arithmetic       {% d => d[0] %}
-            | "do" block "end" {% (d,i,r) => d[1][1].length>0?d[1]:r %}
+expression -> arithmetic     {% d => d[0] %}
 
-conditional -> "if" __ expression __ "then" block "end"              {% d => [d[0], d[2], d[5], ['block', []]] %}
-             | "if" __ expression __ "then" block "else" block "end" {% d => [d[0], d[2], d[4], d[7]] %}
+conditional -> "is" __ expression (__ expression {% d => d[1] %}):? "?" {% d => ['if', d[2], d[3] || ['bool',true]] %}
+             | "uvawys,"           {% d => ['else'] %}
 
-define -> "num "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['num',d[1],d[2]||['num', 0]] %}
-        | "str "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['str',d[1],d[2]||['str', '']] %}
-        | "bool " var (__ setter __ expression {% d => d[3] %} ):? {% d=>['bool',d[1],d[2]||['bool', false]] %}
+define -> var __ setter __ expression        {% d => [d[0], d[4]] %}
+        | setter var                         {% d => [d[1], undefined] %}
+        #| "num "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['num',d[1],d[2]||['num', 0]] %}
+        #| "str "  var (__ setter __ expression {% d => d[3] %} ):? {% d=>['str',d[1],d[2]||['str', '']] %}
+        #| "bool " var (__ setter __ expression {% d => d[3] %} ):? {% d=>['bool',d[1],d[2]||['bool', false]] %}
 
-modify -> var __ setter __ expression {% d => ['set', d[0], d[4]] %}
+modify -> var __ "is" __ expression {% d => ['set', d[0], d[4]] %}
 
-setter -> "="
-        | "is"
+setter -> "issa"
 
-call -> var __ args             {% d => [d[0], d[2]] %}
-      | var                     {% d => [d[0], []] %}
-      | var "(" _ args:? _ ")"  {% d => [d[0], d[3]] %}
+call -> var __ args              {% d => [d[0], d[2]] %}
+      | var callEnd              {% d => [d[0], []] %}
 
-args -> arg:* expression        {% d => { d[0].push(d[1]); return d[0] } %}
-arg  -> expression _ "," _      {% d => d[0] %}
+args -> arg:* expression callEnd {% d => { d[0].push(d[1]); return d[0] } %}
+arg  -> expression _ "," _       {% d => d[0] %}
 
-arithmetic -> _ AS _ {% (d) => d[1] %}
+callEnd -> "."
 
-block -> _ newline:? program _ newline:? _ {% d => ['block', d[2]] %}
+arithmetic -> _ AS _ {% d => d[1] %}
 
 # Brackets
-B -> "(" _ AS _ ")" {% d => d[2] %}
-    | float         {% d => ['num', d[0]] %}
-    | int           {% d => ['num', parseInt(d[0])] %}
-    | var           {% d => ['var', d[0]] %}
-    | string        {% d => ['str', d[0]] %}
-    | bool          {% d => ['bool', d[0]] %}
+B -> "(" _ AS _ ")"  {% d => d[2] %}
+    | float          {% d => ['num', d[0]] %}
+    | int            {% d => ['num', parseInt(d[0])] %}
+    | var            {% d => ['var', d[0]] %}
+    | string         {% d => ['str', d[0]] %}
+    | bool           {% d => ['bool', d[0]] %}
 
 # Indicies
-I -> B _ "^" _ I    {% function(d) { return ['power', flatten(d)[0]] } %}
-   | B              {% id %}
+I -> B _ "^" _ I     {% function(d) { return ['power', flatten(d)[0]] } %}
+   | B               {% id %}
 
 # Division / Multiplication
-DM -> DM _ "*" _ I    {% d => ['multiply', d[0], d[4]] %}
-    | DM _ "/" _ I    {% d => ['divide',   d[0], d[4]] %}
-    | DM " times " I  {% d => ['multiply', d[0], d[2]] %}
-    | DM " divide " I {% d => ['divide',   d[0], d[2]] %}
-    | DM " over " I   {% d => ['divide',   d[0], d[2]] %}
-    | I               {% id %}
+DM -> DM _ "*" _ I   {% d => ['multiply', d[0], d[4]] %}
+    | DM _ "/" _ I   {% d => ['divide',   d[0], d[4]] %}
+    | DM " times " I {% d => ['multiply', d[0], d[2]] %}
+    | DM " over " I  {% d => ['divide',   d[0], d[2]] %}
+    | I              {% id %}
 
 # Addition / Subtraction
 AS -> AS _ "+" _ DM  {% d => ['plus',  d[0], d[4] ] %}
@@ -98,13 +95,12 @@ string -> dqstring {% d => d[0] %}
         | sqstring {% d => d[0] %}
         #| btstring {% d => d[0] %}
 
-bool -> "true"  {% () => true  %}
-      | "yes"   {% () => true  %}
-      | "false" {% () => false %}
-      | "no"    {% () => false %}
+bool -> "tru"  {% () => true  %}
+      | "fals" {% () => false %}
+      | "lie" {% () => false %}
 
-var -> varchar:+ {% (d, _, no) => {
-      var identifier = d[0].join('')
+var -> _ varchar:+ _ {% (d, _, no) => {
+      var identifier = d[1].join('')
       if(/[0-9]/.test(identifier.charAt(0)) || special.words.indexOf(identifier) !== -1) return no
       return identifier
       } %}
@@ -113,7 +109,6 @@ varchar -> . {% (d, _, no) => d[0] && special.chars.indexOf(d[0]) === -1 ? d[0] 
 newline -> "\r" "\n"
          | "\r"
          | "\n"
-         | ";"
 
 _  -> " ":*     {% function(d) { return null } %}
 __ -> " ":+     {% function(d) { return null } %}

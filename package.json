@@ -1,14 +1,14 @@
 {
-  "name": "storytime",
+  "name": "nanalang",
   "version": "0.0.1",
-  "description": "A programming language about telling stories.",
-  "main": "src/storytime.js",
+  "description": "A programming language designed around Mona herself.",
+  "main": "src/nanalang.js",
   "bin": {
-    "tell": "src/tell.js"
+    "nanalang": "src/cmd.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/storytime/storytime.git"
+    "url": "git+https://github.com/nanalan/g.git"
   },
   "author": "nanalan",
   "contributors": [
@@ -17,15 +17,16 @@
   ],
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/nanalan/storytime/issues"
+    "url": "https://github.com/nanalan/g/issues"
   },
-  "homepage": "https://github.com/nanalan/storytime#readme",
+  "homepage": "https://github.com/nanalan/g#readme",
+  "devDependencies": {
+    "nearley": "^2.4.1"
+  },
   "dependencies": {
+    "array-equal": "^1.0.0",
     "chalk": "^1.1.3",
-    "deep-equal": "^1.0.1",
     "get-line-from-pos": "^1.0.0",
-    "nearley": "^2.4.1",
-    "nomnom": "^1.8.1",
-    "uniq": "^1.0.1"
+    "nomnom": "^1.8.1"
   }
 }

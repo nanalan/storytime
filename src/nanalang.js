@@ -6,7 +6,7 @@ const nearleyg = require('nearley/lib/nearley-language-bootstrapped.js')
 const nearleyc = require('nearley/lib/compile.js')
 const gen = require('nearley/lib/generate.js')
 const interp = require('./interp.js')
-const uniq = require('uniq')
+const chalk = require('chalk')
 
 module.exports = function tell(story, opts) {
   let grammar, parser
@@ -16,26 +16,7 @@ module.exports = function tell(story, opts) {
 
   // temporary
   opts.grammar = 'grammars/classic'
-
-  if(!opts.grammar) {
-    // determine the grammar
-    switch(lines[0]) {
-      case 'once upon a time,':
-        grammar = 'classic'
-      break;
-
-      case 'in a galaxy far, far away...':
-        grammar = 'obi-wan'
-      break;
-    }
-    grammar = 'grammars/' + grammar
-
-    // destroy first level of indentation
-    lines = lines.map(line => line.substr(2))
-
-    // destroy the first line
-    lines.shift()
-  } else grammar = opts.grammar
+  grammar = opts.grammar
 
   if(opts.dev) {
     // compile grammar.ne
@@ -61,14 +42,31 @@ module.exports = function tell(story, opts) {
   // join up the lines again
   let source = '\n'+lines.join('\n')+'\n'
 
-  // parse story
-  let trees = uniq(parser.feed(source).results, require('deep-equal')) // hm...
+  try {
+    // parse story
+    var trees = parser.feed(source).results
+  } catch(e) {
+    let ln = require('get-line-from-pos')(source, e.offset) - 1
 
-  if(trees.length > 1) {
-    console.dir(trees, {depth:null})
-    console.warn('^^^ ambiguous grammar ('+trees.length+') ^^^')
-  } else if(trees.length === 0) throw 'nothing parsed'
-  else if(opts.tree) console.log(JSON.stringify(trees[0], null, 2))
+    console.error(
+      chalk.red('Syntax error')
+      + ' on ' +
+      chalk.white('line ' + ln)
+    )
+
+    if(opts.dev) console.log(e.message)
+
+    process.exit(1)
+  }
+
+  if(trees.length > 1 && opts.dev) {
+    for(let tree in trees)
+      console.log(JSON.stringify(trees[tree], null, 0), '\n')
+    console.warn(chalk.yellow.italic('^^^^^^^^^^^^^^^^^^^^^^\nAmbiguous grammar ('+trees.length+').\n'))
+  } else if(trees.length === 0) {
+    console.warn(chalk.yellow.italic('Nothing parsed.'))
+    process.exit(1)
+  } else if(opts.tree) console.log(JSON.stringify(trees[0], null, 2))
 
   // interpret it!
   interp(trees[0], source)

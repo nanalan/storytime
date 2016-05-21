@@ -2,27 +2,27 @@
 'use strict'
 
 const fs = require('fs')
-const tell = require('./storytime.js')
+const nanalang = require('./nanalang.js')
 const opts = require('nomnom')
-  .script('tell')
+  .script('nanalang')
   .options({
-    story: {
+    loli: {
       position: 0,
-      help: 'Path to .story to tell'
+      help: 'Path to .loli file'
     }
   })
   .option('version', {
     abbr: 'v',
     flag: true,
-    help: 'print version number and exit',
+    help: 'Print version number & exit',
     callback: function() {
-      return 'Storytime v' + require('../package.json').version
+      return 'Nanalang v' + require('../package.json').version
     }
   })
   .option('dev', {
     abbr: 'd',
     flag: true,
-    help: 'force re-compilation of grammar'
+    help: 'Force re-compilation of grammar'
   })
   .option('nojs', {
     flag: true,
@@ -31,7 +31,7 @@ const opts = require('nomnom')
   .option('tree', {
     abbr: 't',
     flag: true,
-    help: 'print source tree'
+    help: 'Print source tree (helpful for debugging)'
   })
   /*
   .option('grammar', {
@@ -41,5 +41,5 @@ const opts = require('nomnom')
   */
 .nom()
 
-let story = fs.readFileSync(opts.story, 'utf8')
-tell(story, opts)
+let loli = fs.readFileSync(opts.loli, 'utf8')
+nanalang(loli, opts)
