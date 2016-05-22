@@ -56,6 +56,29 @@ function expr(e, scope, source, index) {
     result = args[0][1] - args[1][1]
   }
 
+  if(type === 'divide') {
+    if(args[0][0] !== 'num' || args[1][0] !== 'num')
+      error('Moron', 'How did you think that would work?', index, source)
+
+    result = args[0][1] / args[1][1]
+  }
+
+  if(type === 'multiply') {
+    if(args[0][0] === 'str' && args[1][0] === 'num') {
+      result = args[0][1].repeat(args[1][1])
+    } else if(args[0][0] === 'num' && args[1][0] === 'num') {
+      result = args[0][1] * args[1][1]
+    } else
+      error('Moron', 'How did you think that would work?', index, source)
+  }
+
+  if(type === 'power') {
+    if(args[0][0] !== 'num' || args[1][0] !== 'num')
+      error('Moron', 'How did you think that would work?', index, source)
+
+    result = Math.pow(args[0][1], args[1][1])
+  }
+
   if(type === 'eq') {
     result = arr_eq(args[0], args[1])
   }

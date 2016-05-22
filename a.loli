@@ -1,9 +1,3 @@
-btw this defines loli as win (boolean true)
-loli issa win
-
-if loli is win
-  rite 'issa loli!'
-elsz
-  btw this throws an error
-  cri ";("
-gtfo
+x issa 3
+rite "so many lolis... " + 'loli' * 5 + "...\nlolis..."
+rite (x^6 * 2 + 25) - x / 25

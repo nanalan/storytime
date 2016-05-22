@@ -37,3 +37,9 @@ elsz
   cri ";("
 gtfo
 ```
+
+```
+x issa 3
+rite "so many lolis... " + 'loli' * 5 + "...\nlolis..."
+rite (x^6 * 2 + 25) - x / 25
+```
