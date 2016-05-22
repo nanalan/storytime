@@ -7,6 +7,7 @@ const special = {
   words: ['is', 'issa',
           'win', 'lose',
           'btw',
+          'tri', 'cat',
           '+', '-', '/', '*', '^', 'times', 'over', 'less', 'plus', 'add',
           'if', 'elsz', 'gtfo']
 }
@@ -43,6 +44,8 @@ comment -> "btw" __ [^"\n"]:*
 
 conditional -> "if" __ expression  {% d => ['if', d[2]] %}
              | "elsz"              {% d => ['else'] %}
+             | "tri"               {% d => ['try'] %}
+             | "cat" (__ var {% d => d[1] %}):?    {% d => ['catch', d[1]] %}
 
 define -> var __ setter __ expression        {% d => [d[0], d[4]] %}
         | setter __ var                      {% d => [d[2], undefined] %}

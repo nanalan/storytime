@@ -4,9 +4,9 @@
 const fs = require('fs')
 const nanalang = require('./nanalang.js')
 const opts = require('nomnom')
-  .script('nanalang')
+  .script('lick')
   .options({
-    loli: {
+    'a loli': {
       position: 0,
       help: 'Path to .loli file'
     }
@@ -41,5 +41,11 @@ const opts = require('nomnom')
   */
 .nom()
 
-let loli = fs.readFileSync(opts.loli, 'utf8')
+try {
+  var loli = fs.readFileSync(opts['a loli'], 'utf8')
+} catch(e) {
+  console.error('Failed to read', opts['a loli'])
+  process.exit(1)
+}
+
 nanalang(loli, opts)

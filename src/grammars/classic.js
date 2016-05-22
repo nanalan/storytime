@@ -11,6 +11,7 @@ const special = {
   words: ['is', 'issa',
           'win', 'lose',
           'btw',
+          'tri', 'cat',
           '+', '-', '/', '*', '^', 'times', 'over', 'less', 'plus', 'add',
           'if', 'elsz', 'gtfo']
 }
@@ -98,6 +99,13 @@ var grammar = {
     {"name": "conditional", "symbols": ["conditional$string$1", "__", "expression"], "postprocess": d => ['if', d[2]]},
     {"name": "conditional$string$2", "symbols": [{"literal":"e"}, {"literal":"l"}, {"literal":"s"}, {"literal":"z"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "conditional", "symbols": ["conditional$string$2"], "postprocess": d => ['else']},
+    {"name": "conditional$string$3", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "conditional", "symbols": ["conditional$string$3"], "postprocess": d => ['try']},
+    {"name": "conditional$string$4", "symbols": [{"literal":"c"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "conditional$ebnf$1$subexpression$1", "symbols": ["__", "var"], "postprocess": d => d[1]},
+    {"name": "conditional$ebnf$1", "symbols": ["conditional$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "conditional$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "conditional", "symbols": ["conditional$string$4", "conditional$ebnf$1"], "postprocess": d => ['catch', d[1]]},
     {"name": "define", "symbols": ["var", "__", "setter", "__", "expression"], "postprocess": d => [d[0], d[4]]},
     {"name": "define", "symbols": ["setter", "__", "var"], "postprocess": d => [d[2], undefined]},
     {"name": "modify$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},

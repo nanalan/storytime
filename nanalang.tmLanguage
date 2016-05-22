@@ -30,7 +30,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\s*(if|elsz|gtfo)(?=\s|,|$)</string>
+			<string>\s*(if|elsz|gtfo|tri|cat)(?=\s|,|$)</string>
 			<key>name</key>
 			<string>keyword.control.loli</string>
 		</dict>
