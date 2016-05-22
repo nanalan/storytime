@@ -56,6 +56,10 @@ function expr(e, scope, source, index) {
     result = args[0][1] - args[1][1]
   }
 
+  if(type === 'eq') {
+    result = arr_eq(args[0], args[1])
+  }
+
   /*
   if(typeof result !== 'object')
     console.log('Expression:', type, args, '\nResult:', result, '\n')
@@ -143,9 +147,8 @@ module.exports = function interpret(tree, source) {
         */
 
         let expression = expr(line[1], scope, source, index)
-        let result = expr(line[2], scope, source, index)
 
-        if(arr_eq(expression, result)) evalBlock = true
+        if(expression[1] === true) evalBlock = true
         else evalBlock = false
 
         blockFlags.if = true
