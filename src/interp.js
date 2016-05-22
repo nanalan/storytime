@@ -3,13 +3,21 @@
 const chalk = require('chalk')
 const arr_eq = require('array-equal')
 
-function error(msg, i, s) {
+function error(type, msg, i, s) {
   const ln = require('get-line-from-pos')(s, i-1)
 
   console.error(
+    chalk.red(
+      'Uncaught '
+      +
+      type
+      +
+      'Error: '
+    )
+    +
     chalk.red(msg)
     + ' on ' +
-    chalk.white('line ' + ln)
+    chalk.white.bold('line ' + ln)
   )
 
   process.exit(1)
@@ -17,26 +25,58 @@ function error(msg, i, s) {
 
 function expr(e, scope, source, index) {
   if(typeof e === 'undefined') e = ['undefined', undefined]
-  if(typeof e[1] === 'array') e[1] = expr[e[1]]
-  if(typeof e[2] === 'array') e[2] = expr[e[2]]
 
-  if(e[0] === 'var') {
-    if(typeof scope[e[1]] === 'undefined') error(`${chalk.bold(e[1])} is not defined`, index, source)
-    e = scope[e[1]]
+  let type = e.shift()
+  let args = e.map(arg => typeof arg === 'object' ? expr(arg, scope, source, index) : arg)
+  let result = e
+
+  /* types */
+
+  if(type === 'var') {
+    if(typeof scope[args[0]] === 'undefined')
+      error('Reference', `${chalk.bold(args[0])} is not defined`, index, source)
+
+    result = scope[args[0]]
   }
 
-  if(e[0] === 'equals') {
+  if(type === 'str') result = [type, args[0]]
+  if(type === 'num') result = [type, args[0]]
+  if(type === 'bool') result = [type, args[0]]
 
+  /* operators */
+
+  if(type === 'plus') {
+    result = args[0][1] + args[1][1]
   }
 
-  return e
+  if(type === 'minus') {
+    if(args[0][0] !== 'num' || args[1][0] !== 'num')
+      error('Moron', 'How did you think that would work?', index, source)
+
+    result = args[0][1] - args[1][1]
+  }
+
+  /*
+  if(typeof result !== 'object')
+    console.log('Expression:', type, args, '\nResult:', result, '\n')
+  */
+
+  return to_type(result)
 }
 
 function to_s(xyz) {
   if(xyz[0] === 'str') return xyz[1]
   if(xyz[0] === 'num') return xyz[1]
-  if(xyz[0] === 'bool' && xyz[1] === true) return 'tru'
-  if(xyz[0] === 'bool' && xyz[1] === false) return 'fals'
+  if(xyz[0] === 'bool' && xyz[1] === true) return 'win'
+  if(xyz[0] === 'bool' && xyz[1] === false) return 'fail'
+  return xyz[1]
+}
+
+function to_type(xyz) {
+  if(typeof xyz === 'string')  return ['str',  xyz]
+  if(typeof xyz === 'number')  return ['num',  xyz]
+  if(typeof xyz === 'boolean') return ['bool', xyz]
+  return xyz
 }
 
 module.exports = function interpret(tree, source) {
@@ -50,6 +90,9 @@ module.exports = function interpret(tree, source) {
 
   let evalBlock = true
   let block = 0
+  let blockFlags = {
+    if: false
+  }
 
   tree.forEach(function(line) {
     let index = line[1]
@@ -59,33 +102,32 @@ module.exports = function interpret(tree, source) {
       if(line[0] === 'define') {
         /*
           Variable definitions.
-          issa <var>
-          <var> issa <expression>
         */
 
         let vari = line[1][0]
-        let to = expr(line[1][2], scope, source)
+        let to = expr(line[1][1], scope, source)
+
+        if(typeof scope[vari] !== 'undefined')
+          error('Reference', `${chalk.bold(vari)} is already defined`, index, source)
 
         scope[vari] = [to[0], to[1]]
       } else
       if(line[0] === 'modify') {
         /*
           Variable modifications.
-          <var> is <expression>
         */
 
         let vari = line[1][1]
-        let type = scope[vari][0]
         let to = expr(line[1][2], scope, source, index)
 
-        if(typeof scope[vari] === 'undefined') error(`${chalk.bold(vari)} is not defined`, index, source)
+        if(typeof scope[vari] === 'undefined')
+          error('Reference', `${chalk.bold(vari)} is not defined`, index, source)
 
         scope[vari] = to
       } else
       if(line[0] === 'call') {
         /*
           Definition calls.
-          <var> [arg1[, arg2[, arg3]]]
         */
 
         let identifier = line[1][0]
@@ -93,16 +135,11 @@ module.exports = function interpret(tree, source) {
 
         if(typeof scope[identifier] !== 'undefined') {
           scope[identifier][1](...args)
-        } else error(`${chalk.bold(identifier)} is not defined`, index, source)
+        } else error('Reference', `${chalk.bold(identifier)} is not defined`, index, source)
       } else
       if(line[0] === 'if') {
         /*
           Conditional if.
-          <is> <expression> <result>?
-            code block
-          kek[|uvawys,
-            code block
-          kek]
         */
 
         let expression = expr(line[1], scope, source, index)
@@ -111,6 +148,7 @@ module.exports = function interpret(tree, source) {
         if(arr_eq(expression, result)) evalBlock = true
         else evalBlock = false
 
+        blockFlags.if = true
         block++
       }
     }
@@ -118,21 +156,23 @@ module.exports = function interpret(tree, source) {
     if(line[0] === 'end') {
       /*
         Close code block.
-        kek
       */
 
-      if(block === 0) error(`Cannot ${chalk.cyan('kek')} outside of block`, index, source)
+      if(block === 0) error('Syntax', `Unexpected token ${chalk.bold('gtfo')}`, index, source)
 
       block--
+      blockFlags = {}
       evalBlock = true
     } else
     if(line[0] === 'else') {
       /*
         Else part of an if.
-        uvawys,
-          code block
-        kek
       */
+
+      if(!blockFlags.if) error('Syntax', `Unexpected token ${chalk.bold('elsz')}`, index, source)
+
+      blockFlags.if = false
+      blockFlags.else = true
 
       evalBlock = !evalBlock
     }

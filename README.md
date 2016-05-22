@@ -1,6 +1,9 @@
-![](https://avatars2.githubusercontent.com/u/9429556?v=3&s=160)
 # nanalang
 > A really stupid programming language.
+
+<p align="center">
+  <img src='https://avatars2.githubusercontent.com/u/9429556?v=3&s=160'>
+</p>
 
 ## Installation
 Make sure you have both *Git* and *Node.js* installed.
@@ -18,19 +21,19 @@ nanalang --help
 
 ## Examples
 
-### Hello World
 ```
-rite 'Hello world!'.
+btw this is a Hello World program
+rite 'Hello World'
 ```
 
-### Variables & Conditionals
 ```
-issa loli
-loli is tru
+btw this defines loli as win (boolean true)
+loli issa win
 
-is loli fals?
-  rite 'issa loli'.
-uvawys,
-  cri 'no loli :('.
-kek
+if loli is win
+  rite 'issa loli!'
+elsz
+  btw this throws an error
+  cri ";("
+gtfo
 ```
