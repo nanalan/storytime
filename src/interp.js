@@ -4,10 +4,12 @@ const chalk = require('chalk')
 const arr_eq = require('array-equal')
 
 function to_s(xyz) {
-  if(xyz[0] === 'str') return xyz[1]
-  if(xyz[0] === 'num') return xyz[1]
-  if(xyz[0] === 'bool' && xyz[1] === true) return 'win'
-  if(xyz[0] === 'bool' && xyz[1] === false) return 'fail'
+  if(xyz[0] === 'str') return chalk.yellow(xyz[1])
+  if(xyz[0] === 'num') return chalk.orange(xyz[1])
+  if(xyz[0] === 'def') return chalk.cyan('howto')
+  if(typeof xyz[0] === 'undefined') return chalk.grey('undefined')
+  if(xyz[0] === 'bool' && xyz[1] === true) return chalk.green('win')
+  if(xyz[0] === 'bool' && xyz[1] === false) return chalk.red('lose')
   return xyz[1]
 }
 
@@ -18,7 +20,7 @@ function to_type(xyz) {
   return xyz
 }
 
-module.exports = function interpret(tree, source) {
+module.exports = function interpret(tree, source, lineStart, lineEnd, args) {
   let scope = {
     rite: ['def', x => console.log(to_s(x))],
     cri: ['def', x => error('Sadness', to_s(x))]
@@ -26,8 +28,14 @@ module.exports = function interpret(tree, source) {
 
   let evalBlock = true
   let block = 0
-  let blockFlags = {
-    if: false
+  let STAHP = false
+  let blockFlags = {}
+  let isFn = false
+
+  if(lineStart) {
+    isFn = true
+    tree = tree.slice(lineStart, lineEnd)
+    scope = require('object-concat')(scope, args)
   }
 
   const error = function(type, msg, i, s) {
@@ -128,7 +136,8 @@ module.exports = function interpret(tree, source) {
     return to_type(result)
   }
 
-  tree.forEach(function(line) {
+  tree.forEach(function(line, lineNumber) {
+    if(STAHP) return
     let index = line[1]
     line = line[0]
 
@@ -190,6 +199,15 @@ module.exports = function interpret(tree, source) {
         blockFlags.latest = 'try'
         blockFlags.error = ''
         block++
+      } else
+      if(line[0] === 'fn') {
+        blockFlags.fn = [line[1], line[2], lineNumber]
+        blockFlags.latest = 'fn'
+        evalBlock = false
+
+        // see end
+
+        block++
       }
     }
 
@@ -198,7 +216,27 @@ module.exports = function interpret(tree, source) {
         Close code block.
       */
 
-      if(block === 0) error('Syntax', `Unexpected token ${chalk.bold('gtfo')}`, index, source)
+      if(block === 0) STAHP = true
+
+      if(blockFlags.fn) {
+        // save contents into fn
+        let fn = blockFlags.fn[0]
+        let args = blockFlags.fn[1].map(arg => arg[1] || [])
+        let ln = blockFlags.fn[2] + 1
+        let lnEnd = lineNumber
+
+        scope[fn] = ['def', function() {
+          let callArgs = [].slice.call(arguments)
+          let params = {}
+
+          args.forEach(function(key, i) {
+            let value = callArgs[i]
+            params[key] = value
+          })
+
+          interpret(tree, source, ln, lnEnd, params)
+        }]
+      }
 
       block--
       blockFlags[blockFlags.latest] = false
@@ -227,8 +265,6 @@ module.exports = function interpret(tree, source) {
 
         let err = line[1]
         scope[err] = blockFlags.err
-
-        block++
       }
   })
 }

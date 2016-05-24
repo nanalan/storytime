@@ -2,7 +2,7 @@
 > A really stupid programming language.
 
 <p align="center">
-  <img src='https://avatars2.githubusercontent.com/u/9429556?v=3&s=160'>
+  <img src='https://avatars2.githubusercontent.com/u/9429556?v=3&s=240'>
 </p>
 
 ## Installation
@@ -27,11 +27,14 @@ rite 'Hello World'
 ```
 
 ```
-btw this defines loli as win (boolean true)
-loli issa win
+btw define lolly
+issa lolly
 
-if loli is win
-  rite 'issa loli!'
+btw set lolly to 
+lolly is win
+
+if lolly is win
+  rite 'issa lolly!'
 elsz
   btw this throws an error
   cri ";("
@@ -40,14 +43,15 @@ gtfo
 
 ```
 x issa 3
-rite "so many lolis... " + 'loli' * 5 + "...\nlolis..."
+rite "so many lollies... " + 'lolly' * 5 + "...\nlollies..."
 rite (x^6 * 2 + 25) - x / 25
 ```
 
 ```
-tri
-  cri 'BOO HOO'
-cat ewwor
-  rite 'Cat ewwor: "' + ewwor + '"'
+howto print something
+  btw 'something' won't be defined outside of this scope
+  rite something
 gtfo
+
+print 'hello'
 ```

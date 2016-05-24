@@ -4,7 +4,7 @@
 <dict>
 	<key>fileTypes</key>
 	<array>
-		<string>loli</string>
+		<string>lolly</string>
 	</array>
 	<key>name</key>
 	<string>nanalang</string>
@@ -14,25 +14,25 @@
 			<key>match</key>
 			<string>((?!-)(?&lt;=\W)|^)(win|lose)(?!-)(?=\W)</string>
 			<key>name</key>
-			<string>constant.language.loli</string>
+			<string>constant.language.lolly</string>
 		</dict>
 		<dict>
 			<key>match</key>
 			<string>([0-9]+(\.[0-9]+)?)</string>
 			<key>name</key>
-			<string>constant.numeric.loli</string>
+			<string>constant.numeric.lolly</string>
 		</dict>
 		<dict>
 			<key>match</key>
 			<string>(?:^|\s)(is|issa|+|\-|/|*|\^|times|over|less|plus|add)\s</string>
 			<key>name</key>
-			<string>keyword.operator.loli</string>
+			<string>keyword.operator.lolly</string>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\s*(if|elsz|gtfo|tri|cat)(?=\s|,|$)</string>
+			<string>\s*(if|elsz|gtfo|end|tri|cat|howto)(\s|,|:|\.\.\.|$)</string>
 			<key>name</key>
-			<string>keyword.control.loli</string>
+			<string>keyword.control.lolly</string>
 		</dict>
 		<dict>
 			<key>begin</key>
@@ -40,7 +40,7 @@
 			<key>end</key>
 			<string>\n</string>
 			<key>name</key>
-			<string>comment.line.number-sign.loli</string>
+			<string>comment.line.number-sign.lolly</string>
 		</dict>
 		<dict>
 			<key>begin</key>
@@ -48,14 +48,14 @@
 			<key>end</key>
 			<string>'</string>
 			<key>name</key>
-			<string>string.quoted.single.loli</string>
+			<string>string.quoted.single.lolly</string>
 			<key>patterns</key>
 			<array>
 				<dict>
 					<key>match</key>
 					<string>\\.</string>
 					<key>name</key>
-					<string>constant.character.escape.loli</string>
+					<string>constant.character.escape.lolly</string>
 				</dict>
 			</array>
 		</dict>
@@ -65,14 +65,14 @@
 			<key>end</key>
 			<string>"</string>
 			<key>name</key>
-			<string>string.quoted.double.loli</string>
+			<string>string.quoted.double.lolly</string>
 			<key>patterns</key>
 			<array>
 				<dict>
 					<key>match</key>
 					<string>\\.</string>
 					<key>name</key>
-					<string>constant.character.escape.loli</string>
+					<string>constant.character.escape.lolly</string>
 				</dict>
 			</array>
 		</dict>
@@ -82,14 +82,14 @@
 			<key>end</key>
 			<string>`</string>
 			<key>name</key>
-			<string>string.quoted.other.loli</string>
+			<string>string.quoted.other.lolly</string>
 			<key>patterns</key>
 			<array>
 				<dict>
 					<key>match</key>
 					<string>\\.</string>
 					<key>name</key>
-					<string>constant.character.escape.loli</string>
+					<string>constant.character.escape.lolly</string>
 				</dict>
 			</array>
 		</dict>
@@ -97,17 +97,17 @@
 			<key>match</key>
 			<string>\s*(rite|cri)</string>
 			<key>name</key>
-			<string>support.function.core.loli</string>
+			<string>support.function.core.lolly</string>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>([^()&lt;&gt;. +\-*/^\\!#=\'",!{}\n]+)</string>
+			<string>([^()&lt;&gt;. +\-*/^\\!#=\'",!{}:]+)</string>
 			<key>name</key>
-			<string>variable.parameter.loli</string>
+			<string>variable.other.lolly</string>
 		</dict>
 	</array>
 	<key>scopeName</key>
-	<string>source.loli</string>
+	<string>source.lolly</string>
 	<key>uuid</key>
 	<string>2d04c2dc-793e-4c10-bb55-9524ad865284</string>
 </dict>

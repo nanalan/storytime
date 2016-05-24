@@ -9,7 +9,7 @@ const special = {
           'btw',
           'tri', 'cat',
           '+', '-', '/', '*', '^', 'times', 'over', 'less', 'plus', 'add',
-          'if', 'elsz', 'gtfo', 'peepo']
+          'if', 'elsz', 'gtfo', 'howto']
 }
 
 const flatten = function(arr) {
@@ -37,18 +37,20 @@ commandn -> _ command _ newline    {% d => d[1] %}
 command -> comment                 {% d => null %}
          | define                  {% d => ['define', d[0]] %}
          | modify                  {% d => ['modify', d[0]] %}
-         | block (","|":"):? {% d => d[0] %}
+         | block (","|":"|"..."):? {% d => d[0] %}
          | "gtfo"                  {% d => ['end'] %}
          
 comment -> "btw" __ [^"\n"]:*
 
-block -> "if" __ expression  {% d => ['if', d[2]] %}
-       | "elsz"              {% d => ['else'] %}
-       | "tri"               {% d => ['try'] %}
-       | "cat" (__ var {% d => d[1] %}):?          {% d => ['catch', d[1]] %}
-       | "peepo" __ var __ args {% d => {
-         ['fn', d[2], d[4][0].concat([d[4][1]])]
-       } %}
+block  -> "if" __ expression  {% d => ['if', d[2]] %}
+        | "elsz"              {% d => ['else'] %}
+
+        | "tri"               {% d => ['try'] %}
+        | "cat" __ var        {% d => ['catch', d[1]] %}
+        | "cat"               {% d => ['catch', d[1]] %}
+
+        | "howto" __ var __ args {% d => ['fn', d[2], d[4][0].concat([d[4][1]])] %}
+        | "howto" __ var      {% d => ['fn', d[2], []] %}
 
 define -> var __ setter __ expression        {% d => [d[0], d[4]] %}
         | setter __ var                      {% d => [d[2], undefined] %}

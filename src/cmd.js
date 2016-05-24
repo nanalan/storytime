@@ -2,13 +2,13 @@
 'use strict'
 
 const fs = require('fs')
-const nanalang = require('./nanalang.js')
+const lick = require('./nanalang.js')
 const opts = require('nomnom')
   .script('lick')
   .options({
-    'a loli': {
+    'file': {
       position: 0,
-      help: 'Path to .loli file'
+      help: 'Path to .lolly file to interpret'
     }
   })
   .option('version', {
@@ -16,36 +16,33 @@ const opts = require('nomnom')
     flag: true,
     help: 'Print version number & exit',
     callback: function() {
-      return 'Nanalang v' + require('../package.json').version
+      return 'nanalang v' + require('../package.json').version
     }
   })
+  // force re-compilation of grammar
   .option('dev', {
     abbr: 'd',
     flag: true,
-    help: 'Force re-compilation of grammar'
+    hidden: true
   })
+  // force nearley --nojs compilation
   .option('nojs', {
     flag: true,
     hidden: true
   })
+  // print nearley returned tree before interp
   .option('tree', {
     abbr: 't',
     flag: true,
-    help: 'Print source tree (helpful for debugging)'
+    hidden: true
   })
-  /*
-  .option('grammar', {
-    abbr: 'g',
-    help: 'file to act as story grammar'
-  })
-  */
 .nom()
 
 try {
-  var loli = fs.readFileSync(opts['a loli'], 'utf8')
+  var lolly = fs.readFileSync(opts['file'], 'utf8')
 } catch(e) {
-  console.error('Failed to read', opts['a loli'])
+  console.error('Failed to read', opts['file'])
   process.exit(1)
 }
 
-nanalang(loli, opts)
+lick(lolly, opts)

@@ -8,14 +8,13 @@ const gen = require('nearley/lib/generate.js')
 const interp = require('./interp.js')
 const chalk = require('chalk')
 
-module.exports = function tell(story, opts) {
+module.exports = function lick(lolly, opts) {
   let grammar, parser
-  let lines = story.split('\n')
+  let lines = lolly.split('\n')
 
   process.chdir(__dirname)
 
-  // temporary
-  opts.grammar = 'grammars/classic'
+  opts.grammar = 'grammar/nanalang'
   grammar = opts.grammar
 
   if(opts.dev) {
@@ -43,7 +42,7 @@ module.exports = function tell(story, opts) {
   let source = '\n'+lines.join('\n')+'\n'
 
   try {
-    // parse story
+    // parse lolly
     var trees = parser.feed(source).results
   } catch(e) {
     let ln = require('get-line-from-pos')(source, e.offset) - 1

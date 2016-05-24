@@ -29,6 +29,7 @@
     "get-line-from-pos": "^1.0.0",
     "map-obj": "^1.0.1",
     "nomnom": "^1.8.1",
+    "object-concat": "^0.2.9",
     "strip-ansi": "^3.0.1"
   }
 }
