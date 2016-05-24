@@ -7,13 +7,13 @@ function id(x) {return x[0]; }
 'use strict'
 
 const special = {
-  chars: '()<>. +-*/^\\!#=\'",!{}',
+  chars: '()<>. +-*/^\\!#=\'",!{}:',
   words: ['is', 'issa',
           'win', 'lose',
           'btw',
           'tri', 'cat',
           '+', '-', '/', '*', '^', 'times', 'over', 'less', 'plus', 'add',
-          'if', 'elsz', 'gtfo']
+          'if', 'elsz', 'gtfo', 'peepo']
 }
 
 const flatten = function(arr) {
@@ -88,24 +88,29 @@ var grammar = {
     {"name": "command$ebnf$1$subexpression$1", "symbols": [{"literal":":"}]},
     {"name": "command$ebnf$1", "symbols": ["command$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "command$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "command", "symbols": ["conditional", "command$ebnf$1"], "postprocess": d => d[0]},
+    {"name": "command", "symbols": ["block", "command$ebnf$1"], "postprocess": d => d[0]},
     {"name": "command$string$1", "symbols": [{"literal":"g"}, {"literal":"t"}, {"literal":"f"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "command", "symbols": ["command$string$1"], "postprocess": d => ['end']},
     {"name": "comment$string$1", "symbols": [{"literal":"b"}, {"literal":"t"}, {"literal":"w"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "comment$ebnf$1", "symbols": []},
     {"name": "comment$ebnf$1", "symbols": [/[^"\n"]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "comment", "symbols": ["comment$string$1", "__", "comment$ebnf$1"]},
-    {"name": "conditional$string$1", "symbols": [{"literal":"i"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "conditional", "symbols": ["conditional$string$1", "__", "expression"], "postprocess": d => ['if', d[2]]},
-    {"name": "conditional$string$2", "symbols": [{"literal":"e"}, {"literal":"l"}, {"literal":"s"}, {"literal":"z"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "conditional", "symbols": ["conditional$string$2"], "postprocess": d => ['else']},
-    {"name": "conditional$string$3", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "conditional", "symbols": ["conditional$string$3"], "postprocess": d => ['try']},
-    {"name": "conditional$string$4", "symbols": [{"literal":"c"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "conditional$ebnf$1$subexpression$1", "symbols": ["__", "var"], "postprocess": d => d[1]},
-    {"name": "conditional$ebnf$1", "symbols": ["conditional$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "conditional$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "conditional", "symbols": ["conditional$string$4", "conditional$ebnf$1"], "postprocess": d => ['catch', d[1]]},
+    {"name": "block$string$1", "symbols": [{"literal":"i"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "block", "symbols": ["block$string$1", "__", "expression"], "postprocess": d => ['if', d[2]]},
+    {"name": "block$string$2", "symbols": [{"literal":"e"}, {"literal":"l"}, {"literal":"s"}, {"literal":"z"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "block", "symbols": ["block$string$2"], "postprocess": d => ['else']},
+    {"name": "block$string$3", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "block", "symbols": ["block$string$3"], "postprocess": d => ['try']},
+    {"name": "block$string$4", "symbols": [{"literal":"c"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "block$ebnf$1$subexpression$1", "symbols": ["__", "var"], "postprocess": d => d[1]},
+    {"name": "block$ebnf$1", "symbols": ["block$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "block$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "block", "symbols": ["block$string$4", "block$ebnf$1"], "postprocess": d => ['catch', d[1]]},
+    {"name": "block$string$5", "symbols": [{"literal":"p"}, {"literal":"e"}, {"literal":"e"}, {"literal":"p"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "block", "symbols": ["block$string$5", "__", "var", "__", "args"], "postprocess":  d => {
+          console.log(d[4][0])
+          ['fn', d[2], d[4][0].concat([d[4][1]])]
+        } },
     {"name": "define", "symbols": ["var", "__", "setter", "__", "expression"], "postprocess": d => [d[0], d[4]]},
     {"name": "define", "symbols": ["setter", "__", "var"], "postprocess": d => [d[2], undefined]},
     {"name": "modify$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
