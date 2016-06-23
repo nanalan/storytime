@@ -1,9 +1,1 @@
-howto print something
-  btw `something` won't be defined outside of this scope
-  rite something
-gtfo
-
-rite 'Saying hi...'
-print 'hello'
-print 1+3
-rite 'Finished!'
+rite 'Hello World'

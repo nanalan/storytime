@@ -30,7 +30,7 @@ rite 'Hello World'
 btw define lolly
 issa lolly
 
-btw set lolly to 
+btw set lolly to
 lolly is win
 
 if lolly is win
@@ -38,7 +38,7 @@ if lolly is win
 elsz
   btw this throws an error
   cri ";("
-gtfo
+lan
 ```
 
 ```
@@ -48,10 +48,11 @@ rite (x^6 * 2 + 25) - x / 25
 ```
 
 ```
+btw functions! (slightly broken)
 howto print something
   btw 'something' won't be defined outside of this scope
   rite something
-gtfo
+lan
 
 print 'hello'
 ```

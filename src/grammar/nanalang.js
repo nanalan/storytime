@@ -13,7 +13,7 @@ const special = {
           'btw',
           'tri', 'cat',
           '+', '-', '/', '*', '^', 'times', 'over', 'less', 'plus', 'add',
-          'if', 'elsz', 'gtfo', 'howto']
+          'if', 'elsz', 'lan', 'howto']
 }
 
 const flatten = function(arr) {
@@ -91,7 +91,7 @@ var grammar = {
     {"name": "command$ebnf$1", "symbols": ["command$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "command$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "command", "symbols": ["block", "command$ebnf$1"], "postprocess": d => d[0]},
-    {"name": "command$string$1", "symbols": [{"literal":"g"}, {"literal":"t"}, {"literal":"f"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "command$string$1", "symbols": [{"literal":"l"}, {"literal":"a"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "command", "symbols": ["command$string$1"], "postprocess": d => ['end']},
     {"name": "comment$string$1", "symbols": [{"literal":"b"}, {"literal":"t"}, {"literal":"w"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "comment$ebnf$1", "symbols": []},

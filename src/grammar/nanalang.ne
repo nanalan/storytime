@@ -9,7 +9,7 @@ const special = {
           'btw',
           'tri', 'cat',
           '+', '-', '/', '*', '^', 'times', 'over', 'less', 'plus', 'add',
-          'if', 'elsz', 'gtfo', 'howto']
+          'if', 'elsz', 'lan', 'howto']
 }
 
 const flatten = function(arr) {
@@ -38,7 +38,7 @@ command -> comment                 {% d => null %}
          | define                  {% d => ['define', d[0]] %}
          | modify                  {% d => ['modify', d[0]] %}
          | block (","|":"|"..."):? {% d => d[0] %}
-         | "gtfo"                  {% d => ['end'] %}
+         | "lan"                  {% d => ['end'] %}
          
 comment -> "btw" __ [^"\n"]:*
 
